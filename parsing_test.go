@@ -33,6 +33,8 @@ func (m *objectMapper) MapperFor(k string) Mapper {
 	switch k {
 	case "data":
 		return &resourceMapper{}
+	case "included":
+		return &includedMapper{}
 	}
 	return nil
 }
@@ -44,7 +46,16 @@ func (m *resourceMapper) MapperFor(k string) Mapper {
 	switch k {
 	case "attributes":
 		return m
+	case "relationships":
+		return m
 	}
+	return nil
+}
+
+type includedMapper struct {
+}
+
+func (m *includedMapper) MapperFor(k string) Mapper {
 	return nil
 }
 

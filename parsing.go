@@ -133,10 +133,18 @@ type Input uint8
 type TransitionFunc func(interface{}, *GrammarStateMachine)
 
 func (sm *GrammarStateMachine) addNest(i Input) {
+	if sm.currentLevel > 0 && sm.nests[sm.currentLevel-1] != SquareBracketOpen {
+		fmt.Println("new submapper for:", sm.keyBuf)
+		sm.mappers[sm.currentLevel] = sm.mappers[sm.currentLevel-1].MapperFor(sm.keyBuf)
+		if sm.mappers[sm.currentLevel] == nil {
+			panic("no mapper for key: " + sm.keyBuf + " at the level: " + string(sm.currentLevel))
+		}
+		sm.keyBuf = ""
+	}
+
 	switch i {
 	case CurlyBracketOpen:
 		sm.s = InsideObject
-
 	case SquareBracketOpen:
 		sm.s = InsideArray
 	}
@@ -195,8 +203,11 @@ var StateInputTable = map[State]map[Input]TransitionFunc{
 		},
 	},
 	InsideStringValue: map[Input]TransitionFunc{
-		Character:           func(i interface{}, sm *GrammarStateMachine) {},
-		DoubleQuotationMark: func(i interface{}, sm *GrammarStateMachine) { sm.s = AfterValue },
+		Character: func(i interface{}, sm *GrammarStateMachine) {},
+		DoubleQuotationMark: func(i interface{}, sm *GrammarStateMachine) {
+			sm.s = AfterValue
+			sm.keyBuf = ""
+		},
 	},
 	AfterValue: map[Input]TransitionFunc{
 		Comma:      func(i interface{}, sm *GrammarStateMachine) { sm.s = BetweenMembers },

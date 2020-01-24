@@ -150,3 +150,38 @@ func (l TestLogger) Fatal(string, map[string]interface{}) {}
 func NewTestLogger() *TestLogger {
 	return &TestLogger{}
 }
+
+func BenchmarkParse(b *testing.B) {
+	content := `{
+		"data": {
+			"id": "test-id",
+			"type": "test-type",
+			"attributes": {
+				"name": "test-name"
+			},
+			"relationships": {}
+		},
+		"included": [{
+			"id": "test-id",
+			"type": "test-type-included",
+			"attributes": {
+				"name": "test-name-included"
+			}
+		}]
+	}`
+
+	it := NewTextIterator(&reader{buf: []byte(content)})
+	m := &objectMapper{}
+	fsm := NewGrammarStateMachine(m)
+	p := NewParser(nil)
+
+	b.ReportAllocs()
+	var err error
+	for i := 0; i <= b.N; i++ {
+		err = p.Parse(it, fsm)
+	}
+
+	if err != nil {
+		panic("wtf?")
+	}
+}

@@ -25,11 +25,27 @@ func (r *reader) Read(p []byte) (int, error) {
 }
 
 type objectMapper struct {
-	keys []string
+	mappersFor []string
 }
 
-func (m *objectMapper) Key(k string) {
-	m.keys = append(m.keys, k)
+func (m *objectMapper) MapperFor(k string) Mapper {
+	m.mappersFor = append(m.mappersFor, k)
+	switch k {
+	case "data":
+		return &resourceMapper{}
+	}
+	return nil
+}
+
+type resourceMapper struct {
+}
+
+func (m *resourceMapper) MapperFor(k string) Mapper {
+	switch k {
+	case "attributes":
+		return m
+	}
+	return nil
 }
 
 func TestParsingGoodGrammar(t *testing.T) {
@@ -87,9 +103,12 @@ func TestParsingGoodGrammar(t *testing.T) {
 
 	err := p.Parse(it, fsm)
 	require.NoError(t, err)
-	require.Len(t, m.keys, 2)
-	assert.Equal(t, "data", m.keys[0])
-	assert.Equal(t, "included", m.keys[1])
+
+	assert.Equal(t, Nil, fsm.s)
+
+	require.Len(t, m.mappersFor, 2)
+	assert.Equal(t, "data", m.mappersFor[0])
+	assert.Equal(t, "included", m.mappersFor[1])
 }
 
 type TestLogger struct {

@@ -95,7 +95,7 @@ func (sm *GrammarStateMachine) Transition(i interface{}) error {
 		return NoTransitionFunc{sm.s, inputType(i)}
 	} else {
 		f(i, sm)
-		fmt.Println("State:", sm.s)
+		//fmt.Println("State:", sm.s)
 	}
 
 	return nil
@@ -134,7 +134,7 @@ type TransitionFunc func(interface{}, *GrammarStateMachine)
 
 func (sm *GrammarStateMachine) addNest(i Input) {
 	if sm.currentLevel > 0 && sm.nests[sm.currentLevel-1] != SquareBracketOpen {
-		fmt.Println("new submapper for:", sm.keyBuf)
+		//fmt.Println("new submapper for:", sm.keyBuf)
 		sm.mappers[sm.currentLevel] = sm.mappers[sm.currentLevel-1].MapperFor(sm.keyBuf)
 		if sm.mappers[sm.currentLevel] == nil {
 			panic("no mapper for key: " + sm.keyBuf + " at the level: " + string(sm.currentLevel))
@@ -150,7 +150,7 @@ func (sm *GrammarStateMachine) addNest(i Input) {
 	}
 	sm.nests[sm.currentLevel] = i
 	sm.currentLevel++
-	fmt.Println("nest added:", sm.nests, sm.currentLevel)
+	//	fmt.Println("nest added:", sm.nests, sm.currentLevel)
 }
 
 func (sm *GrammarStateMachine) removeNest(i Input) {
@@ -167,7 +167,7 @@ func (sm *GrammarStateMachine) removeNest(i Input) {
 	if sm.currentLevel == 0 {
 		sm.s = Nil
 	}
-	fmt.Println("nest removed:", sm.nests, sm.currentLevel)
+	//	fmt.Println("nest removed:", sm.nests, sm.currentLevel)
 }
 
 var StateInputTable = map[State]map[Input]TransitionFunc{

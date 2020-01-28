@@ -109,8 +109,9 @@ func TestParsingGoodGrammar(t *testing.T) {
 	it := NewTextIterator(&reader{buf: []byte(content)})
 	m := &objectMapper{}
 	fsm := NewGrammarStateMachine(m)
-	l := NewTestLogger()
-	p := NewParser(l)
+	//l := NewTestLogger()
+	//p := NewParser(l)
+	p := NewParser(nil)
 
 	err := p.Parse(it, fsm)
 	require.NoError(t, err)

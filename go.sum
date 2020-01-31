@@ -1,10 +1,8 @@
 github.com/brianvoe/gofakeit v3.18.0+incompatible/go.mod h1:kfwdRA90vvNhPutZWfH7WPaDzUjz+CZFqG+rPkOjGOc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/eyenih/go-log v0.0.0-20200116163834-2d67863b10c8 h1:3yGznKm2o2o14wKchwp/lXTuecRuIp3jAgGliIa8ZoU=
-github.com/eyenih/go-log v0.0.0-20200116163834-2d67863b10c8/go.mod h1:d3NMlq08/Rtapdg7NJE3Xxnj3Otv+kRGvP6l6JyW7jM=
-github.com/eyenih/go-moc v0.0.0-20200116165310-23433d75997c h1:YmnQzSnXLfvbpK+7WyppqoOwtMxU4dRXpEyyzFoMOAc=
-github.com/eyenih/go-moc v0.0.0-20200116165310-23433d75997c/go.mod h1:e7cVWvJzMzA3ec6zrtH+UDfxuUqSNEgItZ/3P1mrpck=
+github.com/eyenih/go-moc v0.0.0-20200115215818-460857dc7ef8 h1:JDncC4q5LuK+dOWtsvyHdrOKU3BSEZoJMQ9/29JbVfw=
+github.com/eyenih/go-moc v0.0.0-20200115215818-460857dc7ef8/go.mod h1:70SaG7cZGyhLFsp34g6FyQCgCjIgRSKVbL1v60tllN4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

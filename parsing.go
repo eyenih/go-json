@@ -34,6 +34,7 @@ func (it *TextIterator) Next() (interface{}, error) {
 }
 
 type Mapper interface {
+	SetString(string, string)
 	MapperFor(string) Mapper
 }
 
@@ -42,8 +43,9 @@ type GrammarStateMachine struct {
 	nests        [50]Input
 	currentLevel int
 
-	keyBuf  string
-	mappers [50]Mapper
+	keyBuf   string
+	valueBuf string
+	mappers  [50]Mapper
 }
 
 func NewGrammarStateMachine(m Mapper) *GrammarStateMachine {
@@ -68,6 +70,8 @@ func inputType(i interface{}) Input {
 		return Colon
 	case ',':
 		return Comma
+	case '.':
+		return Dot
 	default:
 		if unicode.IsNumber(rune(i.(byte))) {
 			return Num
@@ -107,6 +111,7 @@ const (
 	BetweenKeyAndColon
 	BetweenColonAndValue
 	InsideStringValue
+	InsideNumberValue
 	AfterValue
 	BetweenMembers
 	InsideArray
@@ -123,6 +128,7 @@ const (
 	SquareBracketClose
 	Colon
 	Comma
+	Dot
 	Num
 	Character
 )
@@ -194,6 +200,7 @@ var StateInputTable = map[State]map[Input]TransitionFunc{
 	},
 	BetweenColonAndValue: map[Input]TransitionFunc{
 		Whitespace: func(i interface{}, sm *GrammarStateMachine) {},
+		Num:        func(i interface{}, sm *GrammarStateMachine) { sm.s = InsideNumberValue },
 		CurlyBracketOpen: func(i interface{}, sm *GrammarStateMachine) {
 			sm.addNest(CurlyBracketOpen)
 		},
@@ -203,8 +210,22 @@ var StateInputTable = map[State]map[Input]TransitionFunc{
 		},
 	},
 	InsideStringValue: map[Input]TransitionFunc{
-		Character: func(i interface{}, sm *GrammarStateMachine) {},
+		Character: func(i interface{}, sm *GrammarStateMachine) {
+			sm.valueBuf += string(i.(byte))
+		},
+		Whitespace: func(i interface{}, sm *GrammarStateMachine) {
+			sm.valueBuf += string(i.(byte))
+		},
 		DoubleQuotationMark: func(i interface{}, sm *GrammarStateMachine) {
+			sm.s = AfterValue
+			sm.mappers[sm.currentLevel-1].SetString(sm.keyBuf, sm.valueBuf)
+			sm.keyBuf = ""
+		},
+	},
+	InsideNumberValue: map[Input]TransitionFunc{
+		Num: func(i interface{}, sm *GrammarStateMachine) {},
+		Dot: func(i interface{}, sm *GrammarStateMachine) {},
+		Whitespace: func(i interface{}, sm *GrammarStateMachine) {
 			sm.s = AfterValue
 			sm.keyBuf = ""
 		},

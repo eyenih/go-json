@@ -1,9 +1,11 @@
 package json
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +27,8 @@ type objectMapper struct {
 	mappersFor []string
 }
 
+func (m *objectMapper) SetString(k, v string) {}
+
 func (m *objectMapper) MapperFor(k string) Mapper {
 	m.mappersFor = append(m.mappersFor, k)
 	switch k {
@@ -39,6 +43,8 @@ func (m *objectMapper) MapperFor(k string) Mapper {
 type resourceMapper struct {
 }
 
+func (m *resourceMapper) SetString(k, v string) {}
+
 func (m *resourceMapper) MapperFor(k string) Mapper {
 	switch k {
 	case "attributes":
@@ -52,75 +58,69 @@ func (m *resourceMapper) MapperFor(k string) Mapper {
 type includedMapper struct {
 }
 
+func (m *includedMapper) SetString(k, v string) {}
+
 func (m *includedMapper) MapperFor(k string) Mapper {
 	return nil
 }
 
+type basicObject struct {
+	name   string
+	number int
+}
+
+type basicObjectMapper struct {
+	bo basicObject
+}
+
+func (m *basicObjectMapper) SetString(k, v string) {
+	if k == "name" {
+		m.bo.name = v
+	}
+}
+
+func (m *basicObjectMapper) MapperFor(k string) Mapper {
+	return nil
+}
+
 func TestParsingGoodGrammar(t *testing.T) {
-	content := `
-	{
-		"data": {
-			"id": "test-id",
-			"type": "test-type",
-			"attributes": {
-				"name": "test-name"
-			},
-			"relationships": {}
-		},
-		"included": [{
-			"id": "test-id",
-			"type": "test-type-included",
-			"attributes": {
-				"name": "test-name-included"
-			}
-		}]
-	}`
+	t.Run("object", func(t *testing.T) {
+		name := gofakeit.Name()
+		number := gofakeit.Float32()
+		content := fmt.Sprintf(`{
+			"name": "%s",
+			"number": %.2f
+		}`, name, number)
 
-	it := NewTextIterator(&reader{buf: []byte(content)})
-	m := &objectMapper{}
-	fsm := NewGrammarStateMachine(m)
+		it := NewTextIterator(&reader{buf: []byte(content)})
+		m := &basicObjectMapper{}
+		fsm := NewGrammarStateMachine(m)
 
-	err := Parse(it, fsm)
-	require.NoError(t, err)
+		err := Parse(it, fsm)
+		require.NoError(t, err)
 
-	assert.Equal(t, Nil, fsm.s)
-
-	require.Len(t, m.mappersFor, 2)
-	assert.Equal(t, "data", m.mappersFor[0])
-	assert.Equal(t, "included", m.mappersFor[1])
+		assert.Equal(t, name, m.bo.name)
+	})
 }
 
 func BenchmarkParse(b *testing.B) {
-	content := `
-	{
-		"data": {
-			"id": "test-id",
-			"type": "test-type",
-			"attributes": {
-				"name": "test-name"
-			},
-			"relationships": {}
-		},
-		"included": [{
-			"id": "test-id",
-			"type": "test-type-included",
-			"attributes": {
-				"name": "test-name-included"
-			}
-		}]
-	}`
+	name := gofakeit.Name()
+	number := gofakeit.Float32()
+	content := fmt.Sprintf(`{
+			"name": "%s",
+			"number": %.2f
+		}`, name, number)
 
 	it := NewTextIterator(&reader{buf: []byte(content)})
-	m := &objectMapper{}
+	m := &basicObjectMapper{}
 	fsm := NewGrammarStateMachine(m)
 
 	b.ReportAllocs()
-	var err error
-	for i := 0; i <= b.N; i++ {
-		err = Parse(it, fsm)
-	}
+	for i := 0; i < b.N; i++ {
+		err := Parse(it, fsm)
 
-	if err != nil {
-		panic("wtf?")
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }

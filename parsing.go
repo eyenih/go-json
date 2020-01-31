@@ -3,6 +3,7 @@ package json
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"unicode"
 
 	"github.com/eyenih/go-moc"
@@ -35,6 +36,7 @@ func (it *TextIterator) Next() (interface{}, error) {
 
 type Mapper interface {
 	SetString(string, string)
+	SetFloat(string, float64)
 	MapperFor(string) Mapper
 }
 
@@ -200,7 +202,10 @@ var StateInputTable = map[State]map[Input]TransitionFunc{
 	},
 	BetweenColonAndValue: map[Input]TransitionFunc{
 		Whitespace: func(i interface{}, sm *GrammarStateMachine) {},
-		Num:        func(i interface{}, sm *GrammarStateMachine) { sm.s = InsideNumberValue },
+		Num: func(i interface{}, sm *GrammarStateMachine) {
+			sm.s = InsideNumberValue
+			sm.valueBuf += string(i.(byte))
+		},
 		CurlyBracketOpen: func(i interface{}, sm *GrammarStateMachine) {
 			sm.addNest(CurlyBracketOpen)
 		},
@@ -210,24 +215,27 @@ var StateInputTable = map[State]map[Input]TransitionFunc{
 		},
 	},
 	InsideStringValue: map[Input]TransitionFunc{
-		Character: func(i interface{}, sm *GrammarStateMachine) {
-			sm.valueBuf += string(i.(byte))
-		},
-		Whitespace: func(i interface{}, sm *GrammarStateMachine) {
-			sm.valueBuf += string(i.(byte))
-		},
+		Character:  func(i interface{}, sm *GrammarStateMachine) { sm.valueBuf += string(i.(byte)) },
+		Whitespace: func(i interface{}, sm *GrammarStateMachine) { sm.valueBuf += string(i.(byte)) },
 		DoubleQuotationMark: func(i interface{}, sm *GrammarStateMachine) {
 			sm.s = AfterValue
 			sm.mappers[sm.currentLevel-1].SetString(sm.keyBuf, sm.valueBuf)
 			sm.keyBuf = ""
+			sm.valueBuf = ""
 		},
 	},
 	InsideNumberValue: map[Input]TransitionFunc{
-		Num: func(i interface{}, sm *GrammarStateMachine) {},
-		Dot: func(i interface{}, sm *GrammarStateMachine) {},
+		Num: func(i interface{}, sm *GrammarStateMachine) { sm.valueBuf += string(i.(byte)) },
+		Dot: func(i interface{}, sm *GrammarStateMachine) { sm.valueBuf += string(i.(byte)) },
 		Whitespace: func(i interface{}, sm *GrammarStateMachine) {
 			sm.s = AfterValue
+			if f, err := strconv.ParseFloat(sm.valueBuf, 64); err != nil {
+				panic(err)
+			} else {
+				sm.mappers[sm.currentLevel-1].SetFloat(sm.keyBuf, f)
+			}
 			sm.keyBuf = ""
+			sm.valueBuf = ""
 		},
 	},
 	AfterValue: map[Input]TransitionFunc{

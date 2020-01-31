@@ -43,7 +43,8 @@ func (m *objectMapper) MapperFor(k string) Mapper {
 type resourceMapper struct {
 }
 
-func (m *resourceMapper) SetString(k, v string) {}
+func (m *resourceMapper) SetString(k, v string)        {}
+func (m *resourceMapper) SetFloat(k string, v float64) {}
 
 func (m *resourceMapper) MapperFor(k string) Mapper {
 	switch k {
@@ -58,7 +59,8 @@ func (m *resourceMapper) MapperFor(k string) Mapper {
 type includedMapper struct {
 }
 
-func (m *includedMapper) SetString(k, v string) {}
+func (m *includedMapper) SetString(k, v string)        {}
+func (m *includedMapper) SetFloat(k string, v float64) {}
 
 func (m *includedMapper) MapperFor(k string) Mapper {
 	return nil
@@ -66,7 +68,7 @@ func (m *includedMapper) MapperFor(k string) Mapper {
 
 type basicObject struct {
 	name   string
-	number int
+	number float64
 }
 
 type basicObjectMapper struct {
@@ -79,14 +81,21 @@ func (m *basicObjectMapper) SetString(k, v string) {
 	}
 }
 
+func (m *basicObjectMapper) SetFloat(k string, v float64) {
+	if k == "number" {
+		m.bo.number = v
+	}
+}
+
 func (m *basicObjectMapper) MapperFor(k string) Mapper {
 	return nil
 }
 
 func TestParsingGoodGrammar(t *testing.T) {
+	gofakeit.Seed(0)
 	t.Run("object", func(t *testing.T) {
 		name := gofakeit.Name()
-		number := gofakeit.Float32()
+		number := gofakeit.Float64()
 		content := fmt.Sprintf(`{
 			"name": "%s",
 			"number": %.2f
@@ -100,6 +109,7 @@ func TestParsingGoodGrammar(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, name, m.bo.name)
+		assert.Equal(t, number, m.bo.number)
 	})
 }
 

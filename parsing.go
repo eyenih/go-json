@@ -5,7 +5,6 @@ import (
 	"io"
 	"unicode"
 
-	"github.com/eyenih/go-log"
 	"github.com/eyenih/go-moc"
 )
 
@@ -172,6 +171,7 @@ func (sm *GrammarStateMachine) removeNest(i Input) {
 
 var StateInputTable = map[State]map[Input]TransitionFunc{
 	Nil: map[Input]TransitionFunc{
+		Whitespace: func(i interface{}, sm *GrammarStateMachine) {},
 		CurlyBracketOpen: func(i interface{}, sm *GrammarStateMachine) {
 			sm.addNest(CurlyBracketOpen)
 		},
@@ -230,19 +230,6 @@ var StateInputTable = map[State]map[Input]TransitionFunc{
 	},
 }
 
-type Parser struct {
-	logger   log.Logger
-	executor *moc.Executor
-}
-
-func NewParser(l log.Logger) *Parser {
-	return &Parser{l, moc.NewExecutor(l)}
-}
-
-func (p *Parser) Parse(it *TextIterator, sm *GrammarStateMachine) error {
-	return p.executor.Execute(it, sm)
-}
-
 func Parse(it *TextIterator, sm *GrammarStateMachine) error {
-	return NewParser(nil).Parse(it, sm)
+	return moc.Execute(it, sm)
 }

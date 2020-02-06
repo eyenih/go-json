@@ -23,49 +23,6 @@ func (r *reader) Read(p []byte) (int, error) {
 	return n, nil
 }
 
-type objectMapper struct {
-	mappersFor []string
-}
-
-func (m *objectMapper) SetString(k, v string) {}
-
-func (m *objectMapper) MapperFor(k string) Mapper {
-	m.mappersFor = append(m.mappersFor, k)
-	switch k {
-	case "data":
-		return &resourceMapper{}
-	case "included":
-		return &includedMapper{}
-	}
-	return nil
-}
-
-type resourceMapper struct {
-}
-
-func (m *resourceMapper) SetString(k, v string)        {}
-func (m *resourceMapper) SetFloat(k string, v float64) {}
-
-func (m *resourceMapper) MapperFor(k string) Mapper {
-	switch k {
-	case "attributes":
-		return m
-	case "relationships":
-		return m
-	}
-	return nil
-}
-
-type includedMapper struct {
-}
-
-func (m *includedMapper) SetString(k, v string)        {}
-func (m *includedMapper) SetFloat(k string, v float64) {}
-
-func (m *includedMapper) MapperFor(k string) Mapper {
-	return nil
-}
-
 type basicObject struct {
 	name   string
 	number float64
